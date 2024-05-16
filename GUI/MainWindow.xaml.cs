@@ -88,7 +88,8 @@ namespace ModbusSensorsApp
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Error reading temperature and humidity: " + ex.Message);
+                    MessageBox.Show("Error reading temperature and humidity:\n" + ex.Message);
+                    Disconnect();
                 }
             }
         }
@@ -123,6 +124,13 @@ namespace ModbusSensorsApp
                 this.DragMove();
         }
 
+        private void Disconnect()
+        {
+            modbusMessage.Disconnect();
+            ConnectTextBlock.Text = "Connect";
+            isConnected = false;
+        }
+
         private void ConnectButton_Click(object sender, RoutedEventArgs e)
         {
             if (!isConnected)
@@ -149,24 +157,25 @@ namespace ModbusSensorsApp
                         }
                         catch (Exception ex)
                         {
+                            Disconnect();
                             MessageBox.Show("Error loading LED states: " + ex.Message);
                         }
                     }
                     else
                     {
+                        Disconnect();
                         MessageBox.Show("Failed to connect to port " + port);
                     }
                 }
                 catch (Exception ex)
                 {
+                    Disconnect();
                     MessageBox.Show("Error: " + ex.Message);
                 }
             }
             else
             {
-                modbusMessage.Disconnect();
-                ConnectTextBlock.Text = "Connect";
-                isConnected = false;
+                Disconnect();
             }
         }
 
@@ -185,11 +194,18 @@ namespace ModbusSensorsApp
                 MessageBox.Show("Device is not connected");
                 return;
             }
-            int distance = modbusMessage.CalculateDistance();
-            if (distance == 0)
+
+            int distance = 0;
+            try
             {
-                MessageBox.Show("Error on reading data");
+                distance = modbusMessage.CalculateDistance();
             }
+            catch (Exception ex ) 
+            {
+                MessageBox.Show("Error on reading data\n" + ex.Message);
+                Disconnect();
+            }
+
             DistanceTextBlock.Text = $"{distance} cm";
         }
 
@@ -215,7 +231,8 @@ namespace ModbusSensorsApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error setting LED state: " + ex.Message);
+                MessageBox.Show("Error setting LED state:\n" + ex.Message);
+                Disconnect();
             }
         }
 
@@ -231,16 +248,19 @@ namespace ModbusSensorsApp
             {
                 if (Led2Checkbox.IsChecked == true)
                 {
+                    Disconnect();
                     modbusMessage.SetLEDState(1, false);
                 }
                 else
                 {
+                    Disconnect();
                     modbusMessage.SetLEDState(1, true);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error setting LED state: " + ex.Message);
+                Disconnect();
+                MessageBox.Show("Error setting LED state:\n" + ex.Message);
             }
         }
 
@@ -257,16 +277,19 @@ namespace ModbusSensorsApp
             {
                 if (Led3Checkbox.IsChecked == true)
                 {
+                    Disconnect();
                     modbusMessage.SetLEDState(2, false);
                 }
                 else
                 {
+                    Disconnect();
                     modbusMessage.SetLEDState(2, true);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error setting LED state: " + ex.Message);
+                Disconnect();
+                MessageBox.Show("Error setting LED state:\n" + ex.Message);
             }
         }
 
@@ -291,7 +314,8 @@ namespace ModbusSensorsApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error setting LED state: " + ex.Message);
+                Disconnect();
+                MessageBox.Show("Error setting LED state:\n" + ex.Message);
             }
         }
 
@@ -317,7 +341,8 @@ namespace ModbusSensorsApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error setting LED state: " + ex.Message);
+                Disconnect();
+                MessageBox.Show("Error setting LED state:\n" + ex.Message);
             }
         }
     }

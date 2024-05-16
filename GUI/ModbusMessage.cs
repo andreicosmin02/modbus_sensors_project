@@ -32,6 +32,8 @@ namespace ModbusSensorsApp
             mySerialPort.DataBits = 8;
             mySerialPort.Handshake = Handshake.None;
             mySerialPort.RtsEnable = true;
+            mySerialPort.WriteTimeout = 3000;
+            mySerialPort.ReadTimeout = 3000;
         }
 
         public bool Connect(string portName, int baudRate)
@@ -82,17 +84,25 @@ namespace ModbusSensorsApp
             byte[] message = new byte[] { (byte)slaveID, (byte)readSingleRegisterFunctionCode,
                                   (byte)(led1Address >> 8), (byte)(led1Address & 0xFF),
                                   0x00, 0x05, 0x00, 0x00 }; // Mesajul Modbus
-
+            byte[] response;
             ushort crc = ModRTU_CRC(message, message.Length);
             message[message.Length - 2] = (byte)(crc & 0xFF);
             message[message.Length - 1] = (byte)(crc >> 8);
+            
+            try
+            {
+                mySerialPort.Write(message, 0, message.Length); // Trimiterea mesajului
 
-            mySerialPort.Write(message, 0, message.Length); // Trimiterea mesajului
+                Thread.Sleep(100); // Așteptare pentru răspuns
 
-            Thread.Sleep(100); // Așteptare pentru răspuns
-
-            byte[] response = new byte[15]; // 15 bytes pentru răspuns
-            mySerialPort.Read(response, 0, response.Length);
+                response = new byte[15]; // 15 bytes pentru răspuns
+            
+                mySerialPort.Read(response, 0, response.Length);
+            }
+            catch
+            {
+                throw;
+            }
 
             // Verificare pentru excepție
             if ((response[1] & 0x80) == 0x80)
@@ -116,17 +126,26 @@ namespace ModbusSensorsApp
             byte[] message = new byte[] { (byte)slaveID, (byte)readSingleRegisterFunctionCode,
                                       (byte)(HCSR04Address >> 8), (byte)(HCSR04Address & 0xFF),
                                       0x00, 0x01, 0x00, 0x00 }; // Mesajul Modbus
+            byte[] response;
 
             ushort crc = ModRTU_CRC(message, message.Length - 2);
             message[message.Length - 2] = (byte)(crc & 0xFF);
             message[message.Length - 1] = (byte)(crc >> 8);
+            
+            try
+            {
+                mySerialPort.Write(message, 0, message.Length); // Trimiterea mesajului
 
-            mySerialPort.Write(message, 0, message.Length); // Trimiterea mesajului
+                Thread.Sleep(2000); // Așteptare pentru răspuns
 
-            Thread.Sleep(2000); // Așteptare pentru răspuns
-
-            byte[] response = new byte[7]; // 7 bytes pentru răspuns
-            mySerialPort.Read(response, 0, response.Length);
+                response = new byte[7]; // 7 bytes pentru răspuns
+            
+                mySerialPort.Read(response, 0, response.Length);
+            }
+            catch
+            {
+                throw;
+            }
 
             // Verificare pentru excepție
             if ((response[1] & 0x80) == 0x80)
@@ -145,17 +164,25 @@ namespace ModbusSensorsApp
             byte[] message = new byte[] { (byte)slaveID, (byte)writeSingleRegisterFunctionCode,
                                   (byte)((led1Address + offset) >> 8), (byte)((led1Address + offset) & 0xFF),
                                   0x00 ,state ? (byte)0x00 : (byte)0x01, 0x00, 0x00}; // Mesajul Modbus
-
+            byte[] response;
             ushort crc = ModRTU_CRC(message, message.Length);
             message[message.Length - 2] = (byte)(crc & 0xFF);
             message[message.Length - 1] = (byte)(crc >> 8);
+            
+            try
+            {
+                mySerialPort.Write(message, 0, message.Length); // Trimiterea mesajului
 
-            mySerialPort.Write(message, 0, message.Length); // Trimiterea mesajului
+                Thread.Sleep(500); // Așteptare pentru răspuns
 
-            Thread.Sleep(500); // Așteptare pentru răspuns
+                response = new byte[8]; // 8 bytes pentru răspuns
 
-            byte[] response = new byte[8]; // 8 bytes pentru răspuns
-            mySerialPort.Read(response, 0, response.Length);
+                mySerialPort.Read(response, 0, response.Length);
+            }
+            catch
+            {
+                throw;
+            }
 
             // Verificare pentru excepție
             if ((response[1] & 0x80) == 0x80)
@@ -166,18 +193,28 @@ namespace ModbusSensorsApp
 
         public (ushort, ushort) ReadTemperatureAndHumidity()
         {
-            byte[] message = new byte[] { 0x05, 0x03, 0x1B, 0x58, 0x00, 0x01, 0x00, 0x00 }; // Mesajul Modbus
-
+            byte[] message = new byte[] { (byte)slaveID, (byte)readSingleRegisterFunctionCode,
+                                    (byte)(DHT11Address >> 8), (byte)(DHT11Address & 0xFF), 
+                                    0x00, 0x01, 0x00, 0x00 }; // Mesajul Modbus
+            byte[] response;
             ushort crc = ModRTU_CRC(message, message.Length);
             message[message.Length - 2] = (byte)(crc & 0xFF);
             message[message.Length - 1] = (byte)(crc >> 8);
 
-            mySerialPort.Write(message, 0, message.Length); // Trimiterea mesajului
+            try
+            {
+                mySerialPort.Write(message, 0, message.Length); // Trimiterea mesajului
 
-            Thread.Sleep(500); // Așteptare pentru răspuns
-
-            byte[] response = new byte[7]; // 7 bytes pentru răspuns
-            mySerialPort.Read(response, 0, response.Length);
+                Thread.Sleep(500); // Așteptare pentru răspuns
+            
+                response = new byte[7]; // 7 bytes pentru răspuns
+            
+                mySerialPort.Read(response, 0, response.Length);
+            }
+            catch
+            {
+                throw;
+            }
 
             // Verificare pentru excepție
             if ((response[1] & 0x80) == 0x80)
